@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>val-agent — multi-model validation</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; max-width: 880px;
+           margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+    h1 { margin-bottom: 0.25rem; }
+    .sub { color: #666; margin-top: 0; }
+    section { border: 1px solid #ddd; border-radius: 6px; padding: 1rem 1.25rem;
+              margin: 1rem 0; }
+    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px;
+            font-size: 0.8rem; background: #eef; color: #225; }
+    .pill.bad { background: #fee; color: #722; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eee; }
+    pre { background: #f6f6f6; padding: 12px; border-radius: 4px;
+          overflow-x: auto; font-size: 0.85rem; }
+    button { background: #1a1a1a; color: #fff; border: 0; padding: 8px 16px;
+             border-radius: 4px; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ok { color: #1a6e1a; } .fail { color: #a01818; } .warn { color: #a06a18; }
+  </style>
+</head>
+<body>
+  <h1>val-agent</h1>
+  <p class="sub">Multi-model document validation with hash-chained audit log.</p>
+
+  <section>
+    <h3>Active models</h3>
+    <div class="row">
+      {% for m in models %}
+        <span class="pill">{{ m.provider }} / {{ m.model }}</span>
+      {% endfor %}
+    </div>
+    <p style="margin-top: 1rem; font-size: 0.9rem;">
+      API keys detected:
+      {% for provider, present in env.items() %}
+        <span class="pill {% if not present %}bad{% endif %}">
+          {{ provider }}: {{ "yes" if present else "no" }}
+        </span>
+      {% endfor %}
+    </p>
+  </section>
+
+  <section>
+    <h3>Rubric — {{ rubric.id }} v{{ rubric.version }}</h3>
+    <p style="font-size: 0.9rem; color: #555;">
+      Standard: {{ rubric.standard.name }} ({{ rubric.standard.reference }})
+    </p>
+    <table>
+      <thead><tr><th>ID</th><th>Description</th><th>Standard ref</th></tr></thead>
+      <tbody>
+        {% for c in rubric.criteria %}
+          <tr><td><code>{{ c.id }}</code></td><td>{{ c.description }}</td>
+              <td>{{ c.standard_ref }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h3>Upload a UTF-8 text document</h3>
+    <form id="form">
+      <input type="file" name="file" required />
+      <button type="submit">Validate</button>
+    </form>
+    <div id="status" style="margin-top: 1rem;"></div>
+    <pre id="output" style="display:none;"></pre>
+  </section>
+
+  <section>
+    <h3>Recent submissions</h3>
+    {% if history %}
+      <table>
+        <thead><tr><th>ID</th><th>File</th><th>SHA-256</th><th>Rubric</th></tr></thead>
+        <tbody>
+          {% for h in history %}
+            <tr><td>{{ h.id }}</td><td>{{ h.file_name }}</td>
+                <td><code>{{ h.file_sha256[:16] }}…</code></td>
+                <td>v{{ h.rubric_version }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p style="color: #888;">No submissions yet.</p>
+    {% endif %}
+  </section>
+
+  <script>
+    const form = document.getElementById('form');
+    const status = document.getElementById('status');
+    const output = document.getElementById('output');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('button');
+      btn.disabled = true;
+      status.textContent = 'Running validators...';
+      output.style.display = 'none';
+      try {
+        const fd = new FormData(form);
+        const res = await fetch('/validate', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || res.statusText);
+        const verdict = data.consensus.overall;
+        const dis = data.consensus.any_disagreement;
+        status.innerHTML = `Submission #${data.submission_id} — overall: ` +
+          `<strong class="${verdict === 'pass' ? 'ok' : 'fail'}">${verdict}</strong>` +
+          (dis ? ' <span class="warn">(model disagreement — review)</span>' : '');
+        output.textContent = JSON.stringify(data, null, 2);
+        output.style.display = 'block';
+      } catch (err) {
+        status.innerHTML = `<span class="fail">Error: ${err.message}</span>`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+prompt_template_version: "1.0.0"
+
+models:
+  - id: claude-opus-4-7
+    provider: anthropic
+    model: claude-opus-4-7
+    enabled: true
+
+  - id: claude-sonnet-4-6
+    provider: anthropic
+    model: claude-sonnet-4-6
+    enabled: true
+
+  - id: gpt-4o
+    provider: openai
+    model: gpt-4o-2024-11-20
+    enabled: false
+
+  - id: gemini-3-pro
+    provider: google
+    model: gemini-3-pro
+    enabled: false
+
+  - id: mock
+    provider: mock
+    model: mock-v1
+    enabled: false
+
+consensus:
+  strategy: majority
+  min_models: 2
+  flag_on_disagreement: true

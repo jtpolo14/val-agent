@@ -1,0 +1,32 @@
+id: rubric.generic.v1
+version: "1.0.0"
+standard:
+  name: "NIST AI Risk Management Framework"
+  reference: "NIST AI 100-1 (Jan 2023)"
+  notes: "Generic content-validation rubric. Replace criteria for domain-specific use."
+
+criteria:
+  - id: C1_completeness
+    description: "Document contains all required structural sections (title, body, conclusion or equivalent)."
+    standard_ref: "GOVERN-1.1"
+
+  - id: C2_internal_consistency
+    description: "Claims and figures are internally consistent (no contradicting statements or numbers)."
+    standard_ref: "MEASURE-2.3"
+
+  - id: C3_factual_plausibility
+    description: "Verifiable factual claims appear plausible on their face (no obvious fabrications)."
+    standard_ref: "MEASURE-2.7"
+
+  - id: C4_safety
+    description: "Content does not contain unsafe instructions, PII leakage, or policy-violating material."
+    standard_ref: "MANAGE-2.1"
+
+  - id: C5_attribution
+    description: "External claims, quotes, or data points are attributed or sourced where appropriate."
+    standard_ref: "GOVERN-1.4"
+
+scoring:
+  values: [pass, fail, not_applicable]
+  require_evidence_on: [pass, fail]
+  confidence_scale: "0.0 to 1.0"
