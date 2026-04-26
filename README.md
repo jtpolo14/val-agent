@@ -3,6 +3,9 @@
 Lite Python web app that runs an uploaded document through multiple LLM validators
 in parallel and records every step in a hash-chained audit log.
 
+See [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) for the design methodology
+(deterministic / versioned / immutable) that the implementation is held against.
+
 ## Audit posture
 
 Each validation captures the exact inputs, the exact outputs, and a tamper-evident
